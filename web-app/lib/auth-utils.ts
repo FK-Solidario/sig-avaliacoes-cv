@@ -1,5 +1,3 @@
-import { MockUser } from './mock-users';
-
 // Tipos para autenticação
 export interface AuthUser {
   id: string;
@@ -63,6 +61,13 @@ export class AuthUtils {
       return userData ? JSON.parse(userData) : null;
     }
     return null;
+  }
+
+  // Remover dados do usuário
+  static removeUser(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(this.USER_KEY);
+    }
   }
 
   // Verificar se o usuário está autenticado

@@ -1,589 +1,1144 @@
 ﻿{
-    "swagger": "2.0",
-    "basePath": "/api",
-    "paths": {
-        "/avaliacoes": {
-            "post": {
-                "responses": {
-                    "201": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/AvaliacaoDesastre"
-                        }
-                    }
-                },
-                "summary": "Criar uma nova avalia\u00e7\u00e3o de desastre",
-                "operationId": "criar_avaliacao",
-                "parameters": [
-                    {
-                        "name": "payload",
-                        "required": true,
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/EntradaAvaliacao"
-                        }
-                    },
-                    {
-                        "name": "X-Fields",
-                        "in": "header",
-                        "type": "string",
-                        "format": "mask",
-                        "description": "An optional fields mask"
-                    }
-                ],
-                "tags": [
-                    "avaliacoes"
-                ]
-            },
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/AvaliacaoDesastre"
-                            }
-                        }
-                    }
-                },
-                "summary": "Listar todas as avalia\u00e7\u00f5es de desastre",
-                "operationId": "listar_avaliacoes",
-                "parameters": [
-                    {
-                        "enum": [
-                            "agua_potavel",
-                            "alimentacao",
-                            "abrigo_temporario",
-                            "roupas_cobertores",
-                            "medicamentos",
-                            "outros"
-                        ],
-                        "in": "query",
-                        "description": "Filtrar por necessidade urgente",
-                        "name": "urgent_need",
-                        "type": "string"
-                    },
-                    {
-                        "enum": [
-                            "habitacao",
-                            "comercio",
-                            "agricultura",
-                            "outro"
-                        ],
-                        "in": "query",
-                        "description": "Filtrar por tipo de estrutura",
-                        "name": "structure_type",
-                        "type": "string"
-                    },
-                    {
-                        "enum": [
-                            "parcial",
-                            "grave",
-                            "total"
-                        ],
-                        "in": "query",
-                        "description": "Filtrar por n\u00edvel de danos",
-                        "name": "damage_level",
-                        "type": "string"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "in": "query",
-                        "description": "Itens por p\u00e1gina",
-                        "name": "per_page"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "in": "query",
-                        "description": "N\u00famero da p\u00e1gina",
-                        "name": "page"
-                    },
-                    {
-                        "name": "X-Fields",
-                        "in": "header",
-                        "type": "string",
-                        "format": "mask",
-                        "description": "An optional fields mask"
-                    }
-                ],
-                "tags": [
-                    "avaliacoes"
-                ]
-            }
+  "swagger": "2.0",
+  "basePath": "/api",
+  "paths": {
+    "/autenticacao/alterar-senha": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
         },
-        "/avaliacoes/options": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/Opcoes"
-                        }
-                    }
-                },
-                "summary": "Obter op\u00e7\u00f5es dispon\u00edveis para os formul\u00e1rios",
-                "operationId": "obter_opcoes",
-                "parameters": [
-                    {
-                        "name": "X-Fields",
-                        "in": "header",
-                        "type": "string",
-                        "format": "mask",
-                        "description": "An optional fields mask"
-                    }
-                ],
-                "tags": [
-                    "avaliacoes"
-                ]
+        "summary": "Alterar senha do utilizador autenticado",
+        "operationId": "alterar_senha",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/AlterarSenha"
             }
-        },
-        "/avaliacoes/statistics": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/Estatisticas"
-                        }
-                    }
-                },
-                "summary": "Obter estat\u00edsticas das avalia\u00e7\u00f5es",
-                "operationId": "obter_estatisticas",
-                "parameters": [
-                    {
-                        "name": "X-Fields",
-                        "in": "header",
-                        "type": "string",
-                        "format": "mask",
-                        "description": "An optional fields mask"
-                    }
-                ],
-                "tags": [
-                    "avaliacoes"
-                ]
-            }
-        },
-        "/avaliacoes/{assessment_id}": {
-            "parameters": [
-                {
-                    "name": "assessment_id",
-                    "in": "path",
-                    "required": true,
-                    "type": "integer"
-                }
-            ],
-            "delete": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "summary": "Eliminar uma avalia\u00e7\u00e3o",
-                "operationId": "eliminar_avaliacao",
-                "tags": [
-                    "avaliacoes"
-                ]
-            },
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/AvaliacaoDesastre"
-                        }
-                    }
-                },
-                "summary": "Obter uma avalia\u00e7\u00e3o espec\u00edfica pelo ID",
-                "operationId": "obter_avaliacao",
-                "parameters": [
-                    {
-                        "name": "X-Fields",
-                        "in": "header",
-                        "type": "string",
-                        "format": "mask",
-                        "description": "An optional fields mask"
-                    }
-                ],
-                "tags": [
-                    "avaliacoes"
-                ]
-            },
-            "put": {
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/AvaliacaoDesastre"
-                        }
-                    }
-                },
-                "summary": "Atualizar uma avalia\u00e7\u00e3o existente",
-                "operationId": "atualizar_avaliacao",
-                "parameters": [
-                    {
-                        "name": "payload",
-                        "required": true,
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/EntradaAvaliacao"
-                        }
-                    },
-                    {
-                        "name": "X-Fields",
-                        "in": "header",
-                        "type": "string",
-                        "format": "mask",
-                        "description": "An optional fields mask"
-                    }
-                ],
-                "tags": [
-                    "avaliacoes"
-                ]
-            }
-        },
-        "/avaliacoes/{assessment_id}/evidence": {
-            "parameters": [
-                {
-                    "name": "assessment_id",
-                    "in": "path",
-                    "required": true,
-                    "type": "integer"
-                }
-            ],
-            "post": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "summary": "Carregar ficheiros de prova para uma avalia\u00e7\u00e3o",
-                "operationId": "carregar_provas",
-                "tags": [
-                    "avaliacoes"
-                ]
-            }
-        }
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
     },
-    "info": {
-        "title": "API de Avalia\u00e7\u00e3o de Desastres",
-        "version": "1.0",
-        "description": "API para gest\u00e3o de avalia\u00e7\u00f5es de desastres naturais"
+    "/autenticacao/login": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Token"
+            }
+          }
+        },
+        "summary": "Autenticar utilizador e obter token de acesso",
+        "operationId": "login_utilizador",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Login"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
     },
-    "produces": [
-        "application/json"
-    ],
-    "consumes": [
-        "application/json"
-    ],
-    "tags": [
+    "/autenticacao/registo": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Utilizador"
+            }
+          }
+        },
+        "summary": "Registar novo utilizador (apenas para ADMIN)",
+        "operationId": "registar_utilizador",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Registo"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/autenticacao/reset-senha": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "summary": "Resetar senha usando token",
+        "operationId": "reset_senha",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ResetSenha"
+            }
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/autenticacao/solicitar-reset-senha": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/RespostaReset"
+            }
+          }
+        },
+        "summary": "Solicitar reset de senha por email",
+        "operationId": "solicitar_reset_senha",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SolicitarReset"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/autenticacao/utilizadores": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Utilizador"
+              }
+            }
+          }
+        },
+        "summary": "Listar todos os utilizadores (apenas para ADMIN)",
+        "operationId": "listar_utilizadores",
+        "parameters": [
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/autenticacao/utilizadores/{utilizador_id}": {
+      "parameters": [
         {
-            "name": "avaliacoes",
-            "description": "Opera\u00e7\u00f5es de Avalia\u00e7\u00e3o de Desastres"
+          "name": "utilizador_id",
+          "in": "path",
+          "required": true,
+          "type": "string"
         }
-    ],
-    "definitions": {
-        "EntradaAvaliacao": {
-            "required": [
-                "contacto_telefonico",
-                "endereco_completo",
-                "membros_agregado",
-                "necessidade_urgente",
-                "nivel_danos",
-                "nome_responsavel",
-                "numero_documento",
-                "tipo_estrutura"
-            ],
-            "properties": {
-                "nome_responsavel": {
-                    "type": "string",
-                    "description": "Nome do Respons\u00e1vel"
-                },
-                "numero_documento": {
-                    "type": "string",
-                    "description": "N\u00famero de Documento (BI ou Passaporte)"
-                },
-                "contacto_telefonico": {
-                    "type": "string",
-                    "description": "Contacto Telef\u00f3nico"
-                },
-                "membros_agregado": {
-                    "type": "integer",
-                    "description": "N.\u00ba de Pessoas no Agregado Familiar"
-                },
-                "grupos_vulneraveis": {
-                    "type": "array",
-                    "description": "Grupos Vulner\u00e1veis",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "endereco_completo": {
-                    "type": "string",
-                    "description": "Endere\u00e7o Completo"
-                },
-                "ponto_referencia": {
-                    "type": "string",
-                    "description": "Ponto de Refer\u00eancia"
-                },
-                "latitude_gps": {
-                    "type": "number",
-                    "description": "Latitude GPS"
-                },
-                "longitude_gps": {
-                    "type": "number",
-                    "description": "Longitude GPS"
-                },
-                "tipo_estrutura": {
-                    "type": "string",
-                    "description": "Tipo de Estrutura Afetada",
-                    "example": "habitacao",
-                    "enum": [
-                        "habitacao",
-                        "comercio",
-                        "agricultura",
-                        "outro"
-                    ]
-                },
-                "nivel_danos": {
-                    "type": "string",
-                    "description": "N\u00edvel de Danos",
-                    "example": "parcial",
-                    "enum": [
-                        "parcial",
-                        "grave",
-                        "total"
-                    ]
-                },
-                "perdas": {
-                    "type": "array",
-                    "description": "Perdas",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "outras_perdas": {
-                    "type": "string",
-                    "description": "Especifica\u00e7\u00e3o de Outras Perdas"
-                },
-                "necessidade_urgente": {
-                    "type": "string",
-                    "description": "Necessidade Urgente",
-                    "example": "agua_potavel",
-                    "enum": [
-                        "agua_potavel",
-                        "alimentacao",
-                        "abrigo_temporario",
-                        "roupas_cobertores",
-                        "medicamentos",
-                        "outros"
-                    ]
-                },
-                "outra_necessidade": {
-                    "type": "string",
-                    "description": "Especifica\u00e7\u00e3o de Outra Necessidade Urgente"
-                }
-            },
-            "type": "object"
+      ],
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
         },
-        "AvaliacaoDesastre": {
-            "required": [
-                "contacto_telefonico",
-                "endereco_completo",
-                "membros_agregado",
-                "necessidade_urgente",
-                "nivel_danos",
-                "nome_responsavel",
-                "numero_documento",
-                "tipo_estrutura"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "description": "ID da Avalia\u00e7\u00e3o",
-                    "readOnly": true
-                },
-                "nome_responsavel": {
-                    "type": "string",
-                    "description": "Nome do Respons\u00e1vel"
-                },
-                "numero_documento": {
-                    "type": "string",
-                    "description": "N\u00famero de Documento (BI ou Passaporte)"
-                },
-                "contacto_telefonico": {
-                    "type": "string",
-                    "description": "Contacto Telef\u00f3nico"
-                },
-                "membros_agregado": {
-                    "type": "integer",
-                    "description": "N.\u00ba de Pessoas no Agregado Familiar"
-                },
-                "grupos_vulneraveis": {
-                    "type": "array",
-                    "description": "Grupos Vulner\u00e1veis",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "endereco_completo": {
-                    "type": "string",
-                    "description": "Endere\u00e7o Completo"
-                },
-                "ponto_referencia": {
-                    "type": "string",
-                    "description": "Ponto de Refer\u00eancia"
-                },
-                "latitude_gps": {
-                    "type": "number",
-                    "description": "Latitude GPS"
-                },
-                "longitude_gps": {
-                    "type": "number",
-                    "description": "Longitude GPS"
-                },
-                "tipo_estrutura": {
-                    "type": "string",
-                    "description": "Tipo de Estrutura Afetada",
-                    "example": "habitacao",
-                    "enum": [
-                        "habitacao",
-                        "comercio",
-                        "agricultura",
-                        "outro"
-                    ]
-                },
-                "nivel_danos": {
-                    "type": "string",
-                    "description": "N\u00edvel de Danos",
-                    "example": "parcial",
-                    "enum": [
-                        "parcial",
-                        "grave",
-                        "total"
-                    ]
-                },
-                "perdas": {
-                    "type": "array",
-                    "description": "Perdas",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "outras_perdas": {
-                    "type": "string",
-                    "description": "Especifica\u00e7\u00e3o de Outras Perdas"
-                },
-                "ficheiros_prova": {
-                    "type": "array",
-                    "description": "Ficheiros de prova",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "necessidade_urgente": {
-                    "type": "string",
-                    "description": "Necessidade Urgente",
-                    "example": "agua_potavel",
-                    "enum": [
-                        "agua_potavel",
-                        "alimentacao",
-                        "abrigo_temporario",
-                        "roupas_cobertores",
-                        "medicamentos",
-                        "outros"
-                    ]
-                },
-                "outra_necessidade": {
-                    "type": "string",
-                    "description": "Especifica\u00e7\u00e3o de Outra Necessidade Urgente"
-                },
-                "data_criacao": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Data de Cria\u00e7\u00e3o",
-                    "readOnly": true
-                },
-                "data_atualizacao": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Data da \u00daltima Atualiza\u00e7\u00e3o",
-                    "readOnly": true
-                }
-            },
-            "type": "object"
+        "summary": "Eliminar um utilizador",
+        "operationId": "eliminar_utilizador",
+        "tags": [
+          "autenticacao"
+        ]
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Utilizador"
+            }
+          }
         },
-        "Estatisticas": {
-            "properties": {
-                "total_avaliacoes": {
-                    "type": "integer",
-                    "description": "Total de avalia\u00e7\u00f5es"
-                },
-                "estatisticas_nivel_danos": {
-                    "type": "object",
-                    "description": "Estat\u00edsticas por n\u00edvel de danos"
-                },
-                "estatisticas_tipo_estrutura": {
-                    "type": "object",
-                    "description": "Estat\u00edsticas por tipo de estrutura"
-                },
-                "estatisticas_necessidade_urgente": {
-                    "type": "object",
-                    "description": "Estat\u00edsticas por necessidade urgente"
-                }
-            },
-            "type": "object"
+        "summary": "Obter dados de um utilizador específico",
+        "operationId": "obter_utilizador",
+        "parameters": [
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      },
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Utilizador"
+            }
+          }
         },
-        "Opcoes": {
-            "properties": {
-                "grupos_vulneraveis": {
-                    "type": "array",
-                    "description": "Op\u00e7\u00f5es de grupos vulner\u00e1veis dispon\u00edveis",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "tipos_estrutura": {
-                    "type": "array",
-                    "description": "Op\u00e7\u00f5es de tipos de estrutura dispon\u00edveis",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "niveis_danos": {
-                    "type": "array",
-                    "description": "Op\u00e7\u00f5es de n\u00edveis de danos dispon\u00edveis",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "tipos_perdas": {
-                    "type": "array",
-                    "description": "Op\u00e7\u00f5es de tipos de perdas dispon\u00edveis",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "necessidades_urgentes": {
-                    "type": "array",
-                    "description": "Op\u00e7\u00f5es de necessidades urgentes dispon\u00edveis",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            },
-            "type": "object"
-        }
+        "summary": "Atualizar dados de um utilizador",
+        "operationId": "atualizar_utilizador",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Registo"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
     },
-    "responses": {
-        "ParseError": {
-            "description": "When a mask can't be parsed"
+    "/autenticacao/verificar": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/RespostaVerificacao"
+            }
+          }
         },
-        "MaskError": {
-            "description": "When any error occurs on mask"
+        "summary": "Verificar validade do token JWT",
+        "operationId": "verificar_token",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/VerificarToken"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "tags": [
+          "autenticacao"
+        ]
+      }
+    },
+    "/avaliacoes": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AvaliacaoDesastre"
+            }
+          }
+        },
+        "summary": "Criar uma nova avaliação de desastre",
+        "operationId": "criar_avaliacao",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/EntradaAvaliacao"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AvaliacaoDesastre"
+              }
+            }
+          }
+        },
+        "summary": "Listar todas as avaliações de desastre",
+        "operationId": "listar_avaliacoes",
+        "parameters": [
+          {
+            "enum": [
+              "agua_potavel",
+              "alimentacao",
+              "abrigo_temporario",
+              "roupas_cobertores",
+              "medicamentos",
+              "outros"
+            ],
+            "in": "query",
+            "description": "Filtrar por necessidade urgente",
+            "name": "urgent_need",
+            "type": "string"
+          },
+          {
+            "enum": [
+              "habitacao",
+              "comercio",
+              "agricultura",
+              "outro"
+            ],
+            "in": "query",
+            "description": "Filtrar por tipo de estrutura",
+            "name": "structure_type",
+            "type": "string"
+          },
+          {
+            "enum": [
+              "parcial",
+              "grave",
+              "total"
+            ],
+            "in": "query",
+            "description": "Filtrar por nível de danos",
+            "name": "damage_level",
+            "type": "string"
+          },
+          {
+            "type": "integer",
+            "default": 10,
+            "in": "query",
+            "description": "Itens por página",
+            "name": "per_page"
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "in": "query",
+            "description": "Número da página",
+            "name": "page"
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      }
+    },
+    "/avaliacoes/options": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Opcoes"
+            }
+          }
+        },
+        "summary": "Obter opções disponíveis para os formulários",
+        "operationId": "obter_opcoes",
+        "parameters": [
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      }
+    },
+    "/avaliacoes/statistics": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Estatisticas"
+            }
+          }
+        },
+        "summary": "Obter estatísticas das avaliações",
+        "operationId": "obter_estatisticas",
+        "parameters": [
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      }
+    },
+    "/avaliacoes/{assessment_id}": {
+      "parameters": [
+        {
+          "name": "assessment_id",
+          "in": "path",
+          "required": true,
+          "type": "integer"
         }
+      ],
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "summary": "Eliminar uma avaliação",
+        "operationId": "eliminar_avaliacao",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AvaliacaoDesastre"
+            }
+          }
+        },
+        "summary": "Obter uma avaliação específica pelo ID",
+        "operationId": "obter_avaliacao",
+        "parameters": [
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      },
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/AvaliacaoDesastre"
+            }
+          }
+        },
+        "summary": "Atualizar uma avaliação existente",
+        "operationId": "atualizar_avaliacao",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/EntradaAvaliacao"
+            }
+          },
+          {
+            "name": "X-Fields",
+            "in": "header",
+            "type": "string",
+            "format": "mask",
+            "description": "An optional fields mask"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      }
+    },
+    "/avaliacoes/{assessment_id}/evidence": {
+      "parameters": [
+        {
+          "name": "assessment_id",
+          "in": "path",
+          "required": true,
+          "type": "integer"
+        }
+      ],
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "summary": "Carregar ficheiros de prova para uma avaliação",
+        "operationId": "carregar_provas",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "avaliacoes"
+        ]
+      }
     }
+  },
+  "info": {
+    "title": "API de Avaliação de Desastres",
+    "version": "1.0",
+    "description": "API para gestão de avaliações de desastres naturais"
+  },
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "Adicione: Bearer &lt;seu_token_jwt&gt;"
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "avaliacoes",
+      "description": "Operações de Avaliação de Desastres"
+    },
+    {
+      "name": "autenticacao",
+      "description": "Operações de Autenticação e Gestão de Utilizadores"
+    }
+  ],
+  "definitions": {
+    "EntradaAvaliacao": {
+      "required": [
+        "contacto_telefonico",
+        "endereco_completo",
+        "membros_agregado",
+        "necessidade_urgente",
+        "nivel_danos",
+        "nome_responsavel",
+        "numero_documento",
+        "tipo_estrutura"
+      ],
+      "properties": {
+        "nome_responsavel": {
+          "type": "string",
+          "description": "Nome do Responsável"
+        },
+        "numero_documento": {
+          "type": "string",
+          "description": "Número de Documento (BI ou Passaporte)"
+        },
+        "contacto_telefonico": {
+          "type": "string",
+          "description": "Contacto Telefónico"
+        },
+        "membros_agregado": {
+          "type": "integer",
+          "description": "N.º de Pessoas no Agregado Familiar"
+        },
+        "grupos_vulneraveis": {
+          "type": "array",
+          "description": "Grupos Vulneráveis",
+          "items": {
+            "type": "string"
+          }
+        },
+        "endereco_completo": {
+          "type": "string",
+          "description": "Endereço Completo"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "description": "Ponto de Referência"
+        },
+        "latitude_gps": {
+          "type": "number",
+          "description": "Latitude GPS"
+        },
+        "longitude_gps": {
+          "type": "number",
+          "description": "Longitude GPS"
+        },
+        "tipo_estrutura": {
+          "type": "string",
+          "description": "Tipo de Estrutura Afetada",
+          "example": "habitacao",
+          "enum": [
+            "habitacao",
+            "comercio",
+            "agricultura",
+            "outro"
+          ]
+        },
+        "nivel_danos": {
+          "type": "string",
+          "description": "Nível de Danos",
+          "example": "parcial",
+          "enum": [
+            "parcial",
+            "grave",
+            "total"
+          ]
+        },
+        "perdas": {
+          "type": "array",
+          "description": "Perdas",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outras_perdas": {
+          "type": "string",
+          "description": "Especificação de Outras Perdas"
+        },
+        "necessidade_urgente": {
+          "type": "string",
+          "description": "Necessidade Urgente",
+          "example": "agua_potavel",
+          "enum": [
+            "agua_potavel",
+            "alimentacao",
+            "abrigo_temporario",
+            "roupas_cobertores",
+            "medicamentos",
+            "outros"
+          ]
+        },
+        "outra_necessidade": {
+          "type": "string",
+          "description": "Especificação de Outra Necessidade Urgente"
+        }
+      },
+      "type": "object"
+    },
+    "AvaliacaoDesastre": {
+      "required": [
+        "contacto_telefonico",
+        "endereco_completo",
+        "membros_agregado",
+        "necessidade_urgente",
+        "nivel_danos",
+        "nome_responsavel",
+        "numero_documento",
+        "tipo_estrutura"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "ID da Avaliação",
+          "readOnly": true
+        },
+        "nome_responsavel": {
+          "type": "string",
+          "description": "Nome do Responsável"
+        },
+        "numero_documento": {
+          "type": "string",
+          "description": "Número de Documento (BI ou Passaporte)"
+        },
+        "contacto_telefonico": {
+          "type": "string",
+          "description": "Contacto Telefónico"
+        },
+        "membros_agregado": {
+          "type": "integer",
+          "description": "N.º de Pessoas no Agregado Familiar"
+        },
+        "grupos_vulneraveis": {
+          "type": "array",
+          "description": "Grupos Vulneráveis",
+          "items": {
+            "type": "string"
+          }
+        },
+        "endereco_completo": {
+          "type": "string",
+          "description": "Endereço Completo"
+        },
+        "ponto_referencia": {
+          "type": "string",
+          "description": "Ponto de Referência"
+        },
+        "latitude_gps": {
+          "type": "number",
+          "description": "Latitude GPS"
+        },
+        "longitude_gps": {
+          "type": "number",
+          "description": "Longitude GPS"
+        },
+        "tipo_estrutura": {
+          "type": "string",
+          "description": "Tipo de Estrutura Afetada",
+          "example": "habitacao",
+          "enum": [
+            "habitacao",
+            "comercio",
+            "agricultura",
+            "outro"
+          ]
+        },
+        "nivel_danos": {
+          "type": "string",
+          "description": "Nível de Danos",
+          "example": "parcial",
+          "enum": [
+            "parcial",
+            "grave",
+            "total"
+          ]
+        },
+        "perdas": {
+          "type": "array",
+          "description": "Perdas",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outras_perdas": {
+          "type": "string",
+          "description": "Especificação de Outras Perdas"
+        },
+        "ficheiros_prova": {
+          "type": "array",
+          "description": "Ficheiros de prova",
+          "items": {
+            "type": "string"
+          }
+        },
+        "necessidade_urgente": {
+          "type": "string",
+          "description": "Necessidade Urgente",
+          "example": "agua_potavel",
+          "enum": [
+            "agua_potavel",
+            "alimentacao",
+            "abrigo_temporario",
+            "roupas_cobertores",
+            "medicamentos",
+            "outros"
+          ]
+        },
+        "outra_necessidade": {
+          "type": "string",
+          "description": "Especificação de Outra Necessidade Urgente"
+        },
+        "data_criacao": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data de Criação",
+          "readOnly": true
+        },
+        "data_atualizacao": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data da Última Atualização",
+          "readOnly": true
+        }
+      },
+      "type": "object"
+    },
+    "Estatisticas": {
+      "properties": {
+        "total_avaliacoes": {
+          "type": "integer",
+          "description": "Total de avaliações"
+        },
+        "estatisticas_nivel_danos": {
+          "type": "object",
+          "description": "Estatísticas por nível de danos"
+        },
+        "estatisticas_tipo_estrutura": {
+          "type": "object",
+          "description": "Estatísticas por tipo de estrutura"
+        },
+        "estatisticas_necessidade_urgente": {
+          "type": "object",
+          "description": "Estatísticas por necessidade urgente"
+        }
+      },
+      "type": "object"
+    },
+    "Opcoes": {
+      "properties": {
+        "grupos_vulneraveis": {
+          "type": "array",
+          "description": "Opções de grupos vulneráveis disponíveis",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tipos_estrutura": {
+          "type": "array",
+          "description": "Opções de tipos de estrutura disponíveis",
+          "items": {
+            "type": "string"
+          }
+        },
+        "niveis_danos": {
+          "type": "array",
+          "description": "Opções de níveis de danos disponíveis",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tipos_perdas": {
+          "type": "array",
+          "description": "Opções de tipos de perdas disponíveis",
+          "items": {
+            "type": "string"
+          }
+        },
+        "necessidades_urgentes": {
+          "type": "array",
+          "description": "Opções de necessidades urgentes disponíveis",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "type": "object"
+    },
+    "Login": {
+      "required": [
+        "email",
+        "senha"
+      ],
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Email do utilizador"
+        },
+        "senha": {
+          "type": "string",
+          "description": "Senha do utilizador"
+        }
+      },
+      "type": "object"
+    },
+    "Token": {
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token JWT de acesso"
+        },
+        "tipo": {
+          "type": "string",
+          "description": "Tipo do token (Bearer)"
+        },
+        "expira_em": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data de expiração do token"
+        },
+        "utilizador": {
+          "description": "Dados do utilizador",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Utilizador"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Utilizador": {
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID único do utilizador",
+          "readOnly": true
+        },
+        "nome": {
+          "type": "string",
+          "description": "Nome completo do utilizador"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email do utilizador"
+        },
+        "papel": {
+          "type": "string",
+          "description": "Papel do utilizador"
+        },
+        "data_criacao": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data de criação",
+          "readOnly": true
+        },
+        "data_atualizacao": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data da última atualização",
+          "readOnly": true
+        }
+      },
+      "type": "object"
+    },
+    "Registo": {
+      "required": [
+        "email",
+        "nome",
+        "papel",
+        "senha"
+      ],
+      "properties": {
+        "nome": {
+          "type": "string",
+          "description": "Nome completo do utilizador"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email do utilizador"
+        },
+        "senha": {
+          "type": "string",
+          "description": "Senha do utilizador"
+        },
+        "papel": {
+          "type": "string",
+          "description": "Papel do utilizador",
+          "example": "ADMIN",
+          "enum": [
+            "ADMIN",
+            "COORDENADOR",
+            "TRABALHADOR_TERRENO"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "VerificarToken": {
+      "required": [
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token JWT para verificar"
+        }
+      },
+      "type": "object"
+    },
+    "RespostaVerificacao": {
+      "properties": {
+        "valido": {
+          "type": "boolean",
+          "description": "Se o token é válido"
+        },
+        "utilizador": {
+          "$ref": "#/definitions/Utilizador"
+        },
+        "expira_em": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data de expiração do token"
+        }
+      },
+      "type": "object"
+    },
+    "AlterarSenha": {
+      "required": [
+        "confirmar_senha",
+        "senha_atual",
+        "senha_nova"
+      ],
+      "properties": {
+        "senha_atual": {
+          "type": "string",
+          "description": "Senha atual"
+        },
+        "senha_nova": {
+          "type": "string",
+          "description": "Nova senha"
+        },
+        "confirmar_senha": {
+          "type": "string",
+          "description": "Confirmação da nova senha"
+        }
+      },
+      "type": "object"
+    },
+    "SolicitarReset": {
+      "required": [
+        "email"
+      ],
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Email do utilizador"
+        }
+      },
+      "type": "object"
+    },
+    "RespostaReset": {
+      "properties": {
+        "mensagem": {
+          "type": "string",
+          "description": "Mensagem de sucesso"
+        },
+        "email_enviado": {
+          "type": "boolean",
+          "description": "Se o email foi enviado"
+        }
+      },
+      "type": "object"
+    },
+    "ResetSenha": {
+      "required": [
+        "confirmar_senha",
+        "senha_nova",
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token de reset"
+        },
+        "senha_nova": {
+          "type": "string",
+          "description": "Nova senha"
+        },
+        "confirmar_senha": {
+          "type": "string",
+          "description": "Confirmação da nova senha"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "responses": {
+    "ParseError": {
+      "description": "When a mask can't be parsed"
+    },
+    "MaskError": {
+      "description": "When any error occurs on mask"
+    }
+  }
 }
-

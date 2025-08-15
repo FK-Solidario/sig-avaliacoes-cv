@@ -1,5 +1,5 @@
 import { StatisticsCards } from '@/components/dashboard/statistics-cards'
-import { AssessmentMap } from '@/components/dashboard/assessment-map'
+import AssessmentMap from '@/components/dashboard/assessment-map'
 import { RecentAssessments } from '@/components/dashboard/recent-assessments'
 import { AssessmentCharts } from '@/components/dashboard/assessment-charts'
 import { AssessmentsByTypeChart } from '@/components/dashboard/assessments-by-type-chart'

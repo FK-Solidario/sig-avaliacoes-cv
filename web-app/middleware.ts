@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserById } from '@/lib/mock-users';
 
-// Função para decodificar JWT mock
-function decodeMockJWT(token: string) {
+// Função para decodificar JWT real
+function decodeJWT(token: string) {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) {
@@ -34,20 +33,13 @@ const protectedRoutes = [
 
 // Rotas públicas (não requerem autenticação)
 const publicRoutes = [
-  '/login',
-  '/api/auth/login',
-  '/api/auth/verify'
+  '/login'
 ];
 
-// Permissões por rota
-const routePermissions: Record<string, string[]> = {
-  '/dashboard': ['view_dashboard'],
-  '/avaliacoes': ['view_dashboard', 'manage_assessments', 'create_assessments'],
-  '/avaliacoes/novo': ['manage_assessments', 'create_assessments'],
-  '/relatorios': ['view_reports', 'create_reports'],
-  '/utilizadores': ['manage_users'],
-  '/configuracoes': ['manage_settings', 'system_config']
-};
+// Controle de acesso baseado em papéis (roles)
+// ADMIN: acesso total
+// ANALISTA: dashboard, avaliacoes, relatorios
+// COORDENADOR/TRABALHADOR_TERRENO: dashboard, avaliacoes
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -83,8 +75,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Validar token
-  const payload = decodeMockJWT(token);
+  // Validar token JWT real
+  const payload = decodeJWT(token);
   
   if (!payload) {
     // Token inválido, redirecionar para login
@@ -95,35 +87,44 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Verificar se o usuário existe
-  const user = getUserById(payload.sub);
+  // Extrair informações do usuário do payload JWT
+  const userId = payload.sub || payload.user_id;
+  // A API Swagger retorna 'papel' em vez de 'role'
+  const userRole = payload.papel || payload.role;
+  const userPermissions = payload.permissions || [];
   
-  if (!user) {
+  // Debug temporário para verificar o payload
+  console.log('JWT Payload:', { userId, userRole, payload });
+  
+  if (!userId || !userRole) {
+    // Payload JWT inválido, redirecionar para login
     const loginUrl = new URL('/login', request.url);
     const response = NextResponse.redirect(loginUrl);
     response.cookies.delete('auth-token');
     return response;
   }
 
-  // Verificar permissões para a rota específica
-  const requiredPermissions = routePermissions[pathname] || [];
-  
-  if (requiredPermissions.length > 0) {
-    const hasPermission = requiredPermissions.some(permission => 
-      user.permissions.includes(permission)
-    );
+  // Verificar acesso baseado no papel do usuário (sem exigir permissões específicas)
+  // ADMIN tem acesso a tudo
+  // ANALISTA pode acessar /avaliacoes e /relatorios
+  // COORDENADOR e TRABALHADOR_TERRENO podem acessar /avaliacoes
+  if (userRole !== 'ADMIN') {
+    if (pathname.startsWith('/utilizadores') || pathname.startsWith('/configuracoes')) {
+      // Apenas ADMIN pode acessar estas rotas
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
     
-    if (!hasPermission) {
-      // Usuário não tem permissão, redirecionar para dashboard
+    if (pathname.startsWith('/relatorios') && userRole !== 'ANALISTA') {
+      // Apenas ADMIN e ANALISTA podem acessar relatórios
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
   // Adicionar informações do usuário aos headers para uso nas páginas
   const response = NextResponse.next();
-  response.headers.set('x-user-id', user.id);
-  response.headers.set('x-user-role', user.role);
-  response.headers.set('x-user-permissions', JSON.stringify(user.permissions));
+  response.headers.set('x-user-id', userId.toString());
+  response.headers.set('x-user-role', userRole);
+  response.headers.set('x-user-permissions', JSON.stringify(userPermissions));
   
   return response;
 }
