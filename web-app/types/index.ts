@@ -1,4 +1,83 @@
-// User and Authentication Types
+// User and Authentication Types - Based on Swagger API
+
+// Swagger Authentication Types
+export interface Login {
+  email: string
+  senha: string
+}
+
+export interface Token {
+  token: string
+  tipo: string
+  expira_em: string
+  utilizador: Utilizador
+}
+
+export interface Utilizador {
+  id: string
+  nome: string
+  email: string
+  papel: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
+  data_criacao?: string
+  data_atualizacao?: string
+}
+
+export interface Registo {
+  nome: string
+  email: string
+  senha: string
+  papel: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
+}
+
+export interface VerificarToken {
+  token: string
+}
+
+export interface RespostaVerificacao {
+  valido: boolean
+  utilizador?: Utilizador
+  mensagem?: string
+}
+
+export interface AlterarSenha {
+  senha_atual: string
+  senha_nova: string
+  confirmar_senha: string
+}
+
+export interface SolicitarReset {
+  email: string
+}
+
+export interface RespostaReset {
+  mensagem: string
+  email_enviado: boolean
+}
+
+export interface ResetSenha {
+  token: string
+  nova_senha: string
+}
+
+// User Management Types
+export interface RegistarUtilizador {
+  nome: string
+  email: string
+  senha: string
+  papel: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
+}
+
+export interface AtualizarUtilizador {
+  nome?: string
+  email?: string
+  papel?: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
+  ativo?: boolean
+}
+
+// Alias for compatibility
+export interface Registo extends RegistarUtilizador {}
+
+// Legacy types for compatibility
 export interface User {
   id: string
   email: string
@@ -95,6 +174,7 @@ export interface Assessment extends AvaliacaoDesastre {
 
 export interface CreateAssessmentRequest extends EntradaAvaliacao {}
 export interface UpdateAssessmentRequest extends Partial<EntradaAvaliacao> {}
+export interface UpdateAssessmentData extends Partial<EntradaAvaliacao> {}
 
 // Evidence Types
 export interface Evidence {

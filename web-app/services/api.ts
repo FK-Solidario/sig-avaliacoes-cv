@@ -2,6 +2,16 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import {
   LoginRequest,
   LoginResponse,
+  Login,
+  Token,
+  Utilizador,
+  Registo,
+  VerificarToken,
+  RespostaVerificacao,
+  AlterarSenha,
+  SolicitarReset,
+  RespostaReset,
+  ResetSenha,
   Assessment,
   CreateAssessmentRequest,
   UpdateAssessmentRequest,
@@ -14,13 +24,15 @@ import {
   EntradaAvaliacao,
   Estatisticas,
   Opcoes,
-  AvaliacaoFilters
+  AvaliacaoFilters,
+  RegistarUtilizador,
+  AtualizarUtilizador
 } from '@/types'
 import { mockAvaliacoes, mockEstatisticas, mockOpcoes } from './mock-data'
 
 class ApiService {
   private api: AxiosInstance
-  private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://84.247.171.243:5000'
+  private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://84.247.171.243:5000/api'
 
   constructor() {
     this.api = axios.create({
@@ -34,7 +46,7 @@ class ApiService {
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('auth_token')
+        const token = localStorage.getItem('auth-token')
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -77,18 +89,87 @@ class ApiService {
     )
   }
 
-  // Authentication
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response: AxiosResponse<LoginResponse> = await this.api.post('/auth/login', credentials)
+  // Authentication endpoints - Based on Swagger API
+  async login(credentials: Login): Promise<Token> {
+    const response = await this.api.post('/autenticacao/login', credentials)
+    const apiResponse = response.data
+    
+    // API returns the exact structure defined in Swagger
+    const tokenData: Token = {
+      token: apiResponse.token,
+      tipo: apiResponse.tipo || 'Bearer',
+      expira_em: apiResponse.expira_em,
+      utilizador: apiResponse.utilizador
+    }
+    
+    if (!tokenData.token) {
+      throw new Error('Token de acesso não encontrado na resposta')
+    }
+    
+    this.setAuthToken(tokenData.token)
+    
+    // Store user info if available in token response
+    if (tokenData.utilizador) {
+      localStorage.setItem('user', JSON.stringify(tokenData.utilizador))
+    }
+    
+    return tokenData
+  }
+
+  async verificarToken(data: VerificarToken): Promise<RespostaVerificacao> {
+    const response = await this.api.post('/autenticacao/verificar', data)
+    return response.data
+  }
+
+  async alterarSenha(data: AlterarSenha): Promise<{ success: boolean; message: string }> {
+    const response = await this.api.post('/autenticacao/alterar-senha', data)
+    return response.data
+  }
+
+  async solicitarResetSenha(data: SolicitarReset): Promise<RespostaReset> {
+    const response = await this.api.post('/autenticacao/solicitar-reset-senha', data)
+    return response.data
+  }
+
+  async resetSenha(data: ResetSenha): Promise<{ success: boolean; message: string }> {
+    const response = await this.api.post('/autenticacao/reset-senha', data)
+    return response.data
+  }
+
+  // User management endpoints
+  async listarUtilizadores(): Promise<Utilizador[]> {
+    const response = await this.api.get('/utilizadores')
+    return response.data
+  }
+
+  async registarUtilizador(data: RegistarUtilizador): Promise<Utilizador> {
+    const response = await this.api.post('/utilizadores', data)
+    return response.data
+  }
+
+  async obterUtilizador(utilizadorId: string): Promise<Utilizador> {
+    const response = await this.api.get(`/utilizadores/${utilizadorId}`)
+    return response.data
+  }
+
+  async atualizarUtilizador(utilizadorId: string, data: AtualizarUtilizador): Promise<Utilizador> {
+    const response = await this.api.put(`/utilizadores/${utilizadorId}`, data)
+    return response.data
+  }
+
+  async eliminarUtilizador(utilizadorId: string): Promise<{ success: boolean; message: string }> {
+    const response = await this.api.delete(`/utilizadores/${utilizadorId}`)
     return response.data
   }
 
   async logout(): Promise<void> {
     try {
-      await this.api.post('/auth/logout')
+      // Note: Swagger doesn't define a logout endpoint, so we just clear local data
+      console.log('Logging out user')
     } catch (error) {
-      // Logout can fail if token is already invalid, but we should continue
-      console.warn('Logout API call failed:', error)
+      console.warn('Logout process failed:', error)
+    } finally {
+      this.removeAuthToken()
     }
   }
 
@@ -139,15 +220,9 @@ class ApiService {
     status?: string
     disaster_type?: string
     severity?: string
-  }): Promise<PaginatedResponse<Assessment>> {
+  }): Promise<Assessment[]> {
     const avaliacoes = await this.getAvaliacoes(params)
-    return {
-      data: avaliacoes.map(this.mapAvaliacaoToAssessment.bind(this)),
-      page: 1,
-      per_page: avaliacoes.length,
-      total: avaliacoes.length,
-      total_pages: 1
-    }
+    return avaliacoes.map(this.mapAvaliacaoToAssessment.bind(this))
   }
 
   async getAssessment(id: string): Promise<Assessment> {

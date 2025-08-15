@@ -2,25 +2,24 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAssessmentStore } from '@/store/assessments'
 import { MapMarker } from '@/types'
 
-// Importação dinâmica do mapa para evitar problemas de SSR
+// Dynamically import the map component to avoid SSR issues
 const DynamicMap = dynamic(
   () => import('./map-component'),
   { 
     ssr: false,
     loading: () => (
-      <div className="h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
-        <p className="text-gray-500">Carregando mapa...</p>
+      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-lg animate-pulse">
+        <div className="text-gray-500">Carregando mapa...</div>
       </div>
     )
   }
 )
 
-export function AssessmentMap() {
-  const { assessments, loading, fetchAssessments } = useAssessmentStore()
+export default function AssessmentMap() {
+  const { assessments, fetchAssessments } = useAssessmentStore()
   const [markers, setMarkers] = useState<MapMarker[]>([])
   const [isClient, setIsClient] = useState(false)
 
@@ -31,73 +30,44 @@ export function AssessmentMap() {
 
   useEffect(() => {
     if (assessments.length > 0) {
-      const mapMarkers: MapMarker[] = assessments
+      const markers: MapMarker[] = assessments
         .filter(assessment => assessment.location?.latitude && assessment.location?.longitude)
         .map(assessment => ({
-          id: String(assessment.id),
-          position: [assessment.location.latitude, assessment.location.longitude] as [number, number],
-          title: assessment.title || 'Avaliação sem nome',
-          severity: assessment.severity || 'low',
+          id: assessment.id.toString(),
+          position: [assessment.location!.latitude, assessment.location!.longitude] as [number, number],
+          title: assessment.title || `Avaliação - ${assessment.nome_responsavel}`,
+          severity: assessment.nivel_danos === 'total' ? 'high' : assessment.nivel_danos === 'grave' ? 'medium' : 'low',
           status: assessment.status || 'pending',
-          popup: `
-            <div>
-              <h3>${assessment.title || 'Avaliação'}</h3>
-              <p>Tipo: ${assessment.disaster_type}</p>
-              <p>Status: ${assessment.status}</p>
-              <p>Severidade: ${assessment.severity}</p>
-              <p>Localização: ${assessment.location.latitude.toFixed(4)}, ${assessment.location.longitude.toFixed(4)}</p>
-            </div>
-          `
+          popup: assessment.description || assessment.endereco_completo || 'Sem descrição'
         }))
-      setMarkers(mapMarkers)
+      
+      setMarkers(markers)
     }
   }, [assessments])
 
+  // Don't render anything on server-side
   if (!isClient) {
     return (
-      <Card className="col-span-full">
-        <CardHeader>
-          <CardTitle>Mapa de Avaliações</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">Carregando mapa...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-lg animate-pulse">
+        <div className="text-gray-500">Carregando mapa...</div>
+      </div>
     )
   }
 
-  if (loading) {
+  if (markers.length === 0) {
     return (
-      <Card className="col-span-full">
-        <CardHeader>
-          <CardTitle>Mapa de Avaliações</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-            <p className="text-gray-500">Carregando dados...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center">
+          <p className="text-gray-500 mb-2">Nenhuma avaliação com localização encontrada</p>
+          <p className="text-sm text-gray-400">As avaliações com coordenadas GPS aparecerão aqui</p>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className="col-span-full">
-      <CardHeader>
-        <CardTitle>Mapa de Avaliações</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[400px] rounded-lg overflow-hidden relative">
-          <DynamicMap markers={markers} />
-          {markers.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-75">
-              <p className="text-gray-500">Nenhuma avaliação com localização encontrada</p>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="h-[400px] w-full">
+      <DynamicMap markers={markers} />
+    </div>
   )
 }

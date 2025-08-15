@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { AuthUser, AuthUtils } from '@/lib/auth-utils'
-import axios from 'axios'
+import { apiService } from '@/services/api'
+import { Login, Token, Utilizador, AlterarSenha, SolicitarReset, ResetSenha } from '@/types'
 
 interface AuthStore {
   user: AuthUser | null
@@ -16,6 +17,10 @@ interface AuthStore {
   checkAuth: () => Promise<void>
   hasPermission: (permission: string) => boolean
   hasRole: (role: string) => boolean
+  // New methods based on Swagger API
+  alterarSenha: (senhaAtual: string, novaSenha: string) => Promise<void>
+  solicitarResetSenha: (email: string) => Promise<void>
+  resetSenha: (token: string, novaSenha: string) => Promise<void>
 }
 
 export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({      user: null,      token: null,      isAuthenticated: false,      isLoading: false,      error: null,
@@ -23,30 +28,44 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
         try {
           set({ isLoading: true, error: null });
           
-          const response = await axios.post('/api/auth/login', {
+          const credentials: Login = {
             email,
-            password
-          });
+            senha: password
+          };
           
-          if (response.data.success) {
-            const { token, user } = response.data;
-            
-            // Salvar token e usuário
-            AuthUtils.saveToken(token);
-            AuthUtils.saveUser(user);
-            
-            set({ 
-              user, 
-              token, 
-              isAuthenticated: true, 
-              isLoading: false,
-              error: null 
-            });
-          } else {
-            throw new Error(response.data.message || 'Erro no login');
+          const tokenData: Token = await apiService.login(credentials);
+          
+          // Convert Utilizador to AuthUser for compatibility
+          if (!tokenData.utilizador) {
+            throw new Error('Dados do utilizador não encontrados na resposta');
           }
+          
+          const authUser: AuthUser = {
+            id: tokenData.utilizador.id?.toString() || '',
+            name: tokenData.utilizador.nome || '',
+            email: tokenData.utilizador.email || email,
+            role: tokenData.utilizador.papel || '',
+            permissions: [] // Default empty permissions array
+          };
+          
+          // Validate required fields
+          if (!authUser.id || !authUser.name || !authUser.role) {
+            throw new Error('Dados do utilizador incompletos');
+          }
+          
+          // Save token and user
+          AuthUtils.saveToken(tokenData.token);
+          AuthUtils.saveUser(authUser);
+          
+          set({ 
+            user: authUser, 
+            token: tokenData.token, 
+            isAuthenticated: true, 
+            isLoading: false,
+            error: null 
+          });
         } catch (error: any) {
-          const errorMessage = error.response?.data?.message || error.message || 'Erro no login';
+          const errorMessage = error.message || 'Erro no login';
           set({ error: errorMessage, isLoading: false });
           throw new Error(errorMessage);
         }
@@ -55,15 +74,8 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
         try {
           set({ isLoading: true });
           
-          // Chamar endpoint de logout (opcional)
-          try {
-            await axios.delete('/api/auth/login');
-          } catch (error) {
-            console.warn('Logout endpoint failed:', error);
-          }
-          
-          // Limpar dados locais
-          AuthUtils.removeToken();
+          // Call logout method from API service
+          await apiService.logout();
           
         } catch (error) {
           console.error('Logout failed:', error);
@@ -94,24 +106,35 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
           return;
         }
         
-        // Verificar se o token não expirou
+        // Check if token is expired
         if (AuthUtils.isTokenExpired(token)) {
           AuthUtils.removeToken();
           set({ user: null, token: null, isAuthenticated: false });
           return;
         }
         
-        // Verificar token com o servidor
+        // Verify token with server using new API
         try {
-          const response = await axios.get('/api/auth/verify', {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+          const verificationData = { token };
+          const response = await apiService.verificarToken(verificationData);
           
-          if (response.data.success && response.data.valid) {
+          if (response.valido && response.utilizador) {
+            // Convert Utilizador to AuthUser for compatibility
+            const authUser: AuthUser = {
+              id: response.utilizador.id?.toString() || '',
+              name: response.utilizador.nome || '',
+              email: response.utilizador.email || '',
+              role: response.utilizador.papel || '',
+              permissions: [] // Default empty permissions array
+            };
+            
+            // Validate required fields from server response
+            if (!authUser.id || !authUser.name || !authUser.email || !authUser.role) {
+              throw new Error('Dados do utilizador incompletos na verificação');
+            }
+            
             set({ 
-              user: response.data.user, 
+              user: authUser, 
               token, 
               isAuthenticated: true 
             });
@@ -121,7 +144,9 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
           }
         } catch (error) {
           console.error('Auth verification failed:', error);
+          // Remove invalid token and logout user
           AuthUtils.removeToken();
+          AuthUtils.removeUser();
           set({ user: null, token: null, isAuthenticated: false });
         }
       },
@@ -134,6 +159,73 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
       hasRole: (role: string) => {
         const { user } = get();
         return AuthUtils.hasRole(user, role);
+      },
+      
+      // New methods based on Swagger API
+      alterarSenha: async (senhaAtual: string, novaSenha: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          
+          const data: AlterarSenha = {
+            senha_atual: senhaAtual,
+            senha_nova: novaSenha,
+            confirmar_senha: novaSenha
+          };
+          
+          const response = await apiService.alterarSenha(data);
+          
+          if (!response.success) {
+            throw new Error(response.message || 'Erro ao alterar senha');
+          }
+          
+          set({ isLoading: false });
+        } catch (error: any) {
+          const errorMessage = error.message || 'Erro ao alterar senha';
+          set({ error: errorMessage, isLoading: false });
+          throw new Error(errorMessage);
+        }
+      },
+      
+      solicitarResetSenha: async (email: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          
+          const data: SolicitarReset = { email };
+          const response = await apiService.solicitarResetSenha(data);
+          
+          if (!response.email_enviado) {
+            throw new Error(response.mensagem || 'Erro ao solicitar reset de senha');
+          };
+          
+          set({ isLoading: false });
+        } catch (error: any) {
+          const errorMessage = error.message || 'Erro ao solicitar reset de senha';
+          set({ error: errorMessage, isLoading: false });
+          throw new Error(errorMessage);
+        }
+      },
+      
+      resetSenha: async (token: string, novaSenha: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          
+          const data: ResetSenha = {
+            token,
+            nova_senha: novaSenha
+          };
+          
+          const response = await apiService.resetSenha(data);
+          
+          if (!response.success) {
+            throw new Error(response.message || 'Erro ao redefinir senha');
+          }
+          
+          set({ isLoading: false });
+        } catch (error: any) {
+          const errorMessage = error.message || 'Erro ao redefinir senha';
+          set({ error: errorMessage, isLoading: false });
+          throw new Error(errorMessage);
+        }
       },    }),
     {
       name: 'auth-storage',

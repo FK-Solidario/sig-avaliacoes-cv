@@ -1,40 +1,83 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { Icon } from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { useEffect, useState } from 'react'
+import { Component, ErrorInfo, ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { MapMarker } from '@/types'
 import { getSeverityColor } from '@/lib/utils'
+
+// Fix for default markers in react-leaflet
+if (typeof window !== 'undefined') {
+  delete (Icon.Default.prototype as any)._getIconUrl
+  Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  })
+}
 
 interface DynamicMapProps {
   markers: MapMarker[]
 }
 
-// Error boundary component for map
-function MapErrorBoundary({ children }: { children: React.ReactNode }) {
-  const [hasError, setHasError] = useState(false)
-
-  useEffect(() => {
-    const handleError = () => setHasError(true)
-    window.addEventListener('error', handleError)
-    return () => window.removeEventListener('error', handleError)
-  }, [])
-
-  if (hasError) {
-    return (
-      <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
-        <p className="text-gray-500">Erro ao carregar o mapa</p>
-      </div>
-    )
-  }
-
-  return <>{children}</>
+interface MapErrorBoundaryProps {
+  children: ReactNode
 }
 
-// Map content component
-function MapContent({ markers }: { markers: MapMarker[] }) {
+interface MapErrorBoundaryState {
+  hasError: boolean
+}
+
+class MapErrorBoundary extends Component<MapErrorBoundaryProps, MapErrorBoundaryState> {
+  constructor(props: MapErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(): MapErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Map Error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-lg">
+          <div className="text-center">
+            <p className="text-gray-600 mb-2">Erro ao carregar o mapa</p>
+            <button 
+              onClick={() => this.setState({ hasError: false })}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+interface MapContentProps {
+  markers: MapMarker[]
+}
+
+function MapContent({ markers }: MapContentProps) {
   return (
-    <>
+    <MapContainer
+      center={[-14.235, -51.9253]} // Centro do Brasil
+      zoom={4}
+      style={{ height: '400px', width: '100%' }}
+      className="rounded-lg"
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -82,50 +125,39 @@ function MapContent({ markers }: { markers: MapMarker[] }) {
           </Marker>
         )
       })}
-    </>
+    </MapContainer>
   )
 }
 
 export default function DynamicMap({ markers }: DynamicMapProps) {
   const [isMounted, setIsMounted] = useState(false)
-  const mapRef = useRef<any>(null)
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
   useEffect(() => {
-    // Invalidate map size after mount to ensure proper rendering
-    if (isMounted && mapRef.current) {
-      const map = mapRef.current
-      setTimeout(() => {
-        if (map && map.invalidateSize) {
-          map.invalidateSize()
-        }
-      }, 100)
-    }
-  }, [isMounted])
+    // Invalidate map size when markers change
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('resize'))
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [markers])
 
   if (!isMounted) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
-        <p className="text-gray-500">Carregando mapa...</p>
+      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-lg animate-pulse">
+        <div className="text-gray-500">Carregando mapa...</div>
       </div>
     )
   }
 
   return (
     <MapErrorBoundary>
-      <div className="h-full w-full relative">
-        <MapContainer
-          ref={mapRef}
-          center={[-14.235, -51.9253]}
-          zoom={4}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <MapContent markers={markers} />
-        </MapContainer>
-      </div>
+      <MapContent markers={markers} />
     </MapErrorBoundary>
   )
 }
