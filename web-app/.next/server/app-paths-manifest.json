@@ -1,7 +1,8 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js",
   "/avaliacoes/[id]/page": "app/avaliacoes/[id]/page.js",
+  "/avaliacoes/page": "app/avaliacoes/page.js",
   "/avaliacoes/novo/page": "app/avaliacoes/novo/page.js",
-  "/avaliacoes/page": "app/avaliacoes/page.js"
+  "/page": "app/page.js",
+  "/api/auth/verify/route": "app/api/auth/verify/route.js"
 }

@@ -45,6 +45,7 @@ export function AssessmentMap() {
               <p>Tipo: ${assessment.disaster_type}</p>
               <p>Status: ${assessment.status}</p>
               <p>Severidade: ${assessment.severity}</p>
+              <p>Localização: ${assessment.location.latitude.toFixed(4)}, ${assessment.location.longitude.toFixed(4)}</p>
             </div>
           `
         }))
