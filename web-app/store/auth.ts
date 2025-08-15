@@ -54,12 +54,12 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
           }
           
           // Save token and user
-          AuthUtils.saveToken(tokenData.access_token);
+          AuthUtils.saveToken(tokenData.token);
           AuthUtils.saveUser(authUser);
           
           set({ 
             user: authUser, 
-            token: tokenData.access_token, 
+            token: tokenData.token, 
             isAuthenticated: true, 
             isLoading: false,
             error: null 
@@ -168,7 +168,8 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
           
           const data: AlterarSenha = {
             senha_atual: senhaAtual,
-            nova_senha: novaSenha
+            senha_nova: novaSenha,
+            confirmar_senha: novaSenha
           };
           
           const response = await apiService.alterarSenha(data);
@@ -192,9 +193,9 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
           const data: SolicitarReset = { email };
           const response = await apiService.solicitarResetSenha(data);
           
-          if (!response.token_enviado) {
+          if (!response.email_enviado) {
             throw new Error(response.mensagem || 'Erro ao solicitar reset de senha');
-          }
+          };
           
           set({ isLoading: false });
         } catch (error: any) {

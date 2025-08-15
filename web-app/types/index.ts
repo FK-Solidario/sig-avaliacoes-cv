@@ -7,27 +7,26 @@ export interface Login {
 }
 
 export interface Token {
-  access_token: string
-  token_type: string
-  expires_in: number
+  token: string
+  tipo: string
+  expira_em: string
   utilizador: Utilizador
 }
 
 export interface Utilizador {
-  id: number
+  id: string
   nome: string
   email: string
-  role: 'ADMIN' | 'COORDENADOR' | 'ANALISTA' | 'TERRENO'
-  ativo: boolean
-  data_criacao: string
-  data_atualizacao: string
+  papel: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
+  data_criacao?: string
+  data_atualizacao?: string
 }
 
 export interface Registo {
   nome: string
   email: string
   senha: string
-  role: 'ADMIN' | 'COORDENADOR' | 'ANALISTA' | 'TERRENO'
+  papel: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
 }
 
 export interface VerificarToken {
@@ -42,7 +41,8 @@ export interface RespostaVerificacao {
 
 export interface AlterarSenha {
   senha_atual: string
-  nova_senha: string
+  senha_nova: string
+  confirmar_senha: string
 }
 
 export interface SolicitarReset {
@@ -51,7 +51,7 @@ export interface SolicitarReset {
 
 export interface RespostaReset {
   mensagem: string
-  token_enviado: boolean
+  email_enviado: boolean
 }
 
 export interface ResetSenha {
@@ -64,13 +64,13 @@ export interface RegistarUtilizador {
   nome: string
   email: string
   senha: string
-  role: 'ADMIN' | 'COORDENADOR' | 'ANALISTA' | 'TERRENO'
+  papel: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
 }
 
 export interface AtualizarUtilizador {
   nome?: string
   email?: string
-  role?: 'ADMIN' | 'COORDENADOR' | 'ANALISTA' | 'TERRENO'
+  papel?: 'ADMIN' | 'COORDENADOR' | 'TRABALHADOR_TERRENO'
   ativo?: boolean
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 
 // Função para decodificar JWT real
@@ -67,6 +68,10 @@ export function middleware(request: NextRequest) {
   // Verificar token de autenticação
   const token = request.cookies.get('auth-token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '');
+  
+  console.log('Middleware Debug - Token found:', !!token);
+  console.log('Middleware Debug - Cookie token:', !!request.cookies.get('auth-token')?.value);
+  console.log('Middleware Debug - Header token:', !!request.headers.get('authorization'));
 
   if (!token) {
     // Redirecionar para login se não houver token
@@ -88,13 +93,15 @@ export function middleware(request: NextRequest) {
   }
 
   // Extrair informações do usuário do payload JWT
-  const userId = payload.sub || payload.user_id;
+  const userId = payload.sub || payload.user_id || payload.utilizador_id;
   // A API Swagger retorna 'papel' em vez de 'role'
   const userRole = payload.papel || payload.role;
   const userPermissions = payload.permissions || [];
   
-  // Debug temporário para verificar o payload
-  console.log('JWT Payload:', { userId, userRole, payload });
+  // Debug logs para diagnóstico
+  console.log('Middleware Debug - JWT Payload:', { userId, userRole, payload });
+  console.log('Middleware Debug - Token valid:', !!payload);
+  console.log('Middleware Debug - User data extracted:', { userId: !!userId, userRole: !!userRole });
   
   if (!userId || !userRole) {
     // Payload JWT inválido, redirecionar para login

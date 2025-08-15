@@ -46,7 +46,7 @@ class ApiService {
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('auth_token')
+        const token = localStorage.getItem('auth-token')
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -94,20 +94,19 @@ class ApiService {
     const response = await this.api.post('/autenticacao/login', credentials)
     const apiResponse = response.data
     
-    // API returns 'token' but our interface expects 'access_token'
-    // Map the API response to our expected format
+    // API returns the exact structure defined in Swagger
     const tokenData: Token = {
-      access_token: apiResponse.token,
-      token_type: apiResponse.tipo || 'Bearer',
-      expires_in: 86400, // Default 24 hours
+      token: apiResponse.token,
+      tipo: apiResponse.tipo || 'Bearer',
+      expira_em: apiResponse.expira_em,
       utilizador: apiResponse.utilizador
     }
     
-    if (!tokenData.access_token) {
+    if (!tokenData.token) {
       throw new Error('Token de acesso não encontrado na resposta')
     }
     
-    this.setAuthToken(tokenData.access_token)
+    this.setAuthToken(tokenData.token)
     
     // Store user info if available in token response
     if (tokenData.utilizador) {
@@ -148,17 +147,17 @@ class ApiService {
     return response.data
   }
 
-  async obterUtilizador(utilizadorId: number): Promise<Utilizador> {
+  async obterUtilizador(utilizadorId: string): Promise<Utilizador> {
     const response = await this.api.get(`/utilizadores/${utilizadorId}`)
     return response.data
   }
 
-  async atualizarUtilizador(utilizadorId: number, data: AtualizarUtilizador): Promise<Utilizador> {
+  async atualizarUtilizador(utilizadorId: string, data: AtualizarUtilizador): Promise<Utilizador> {
     const response = await this.api.put(`/utilizadores/${utilizadorId}`, data)
     return response.data
   }
 
-  async eliminarUtilizador(utilizadorId: number): Promise<{ success: boolean; message: string }> {
+  async eliminarUtilizador(utilizadorId: string): Promise<{ success: boolean; message: string }> {
     const response = await this.api.delete(`/utilizadores/${utilizadorId}`)
     return response.data
   }
