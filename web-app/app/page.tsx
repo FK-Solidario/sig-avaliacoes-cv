@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { StatisticsCards } from '@/components/dashboard/statistics-cards'
-import AssessmentMap from '@/components/dashboard/assessment-map'
 import { RecentAssessments } from '@/components/dashboard/recent-assessments'
 import { AssessmentCharts } from '@/components/dashboard/assessment-charts'
 import { AssessmentsByTypeChart } from '@/components/dashboard/assessments-by-type-chart'
 import { MonthlyTrendChart } from '@/components/dashboard/monthly-trend-chart'
+import { Button } from '@/components/ui/button'
+import { MapPin } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Dashboard() {
   return (
@@ -15,19 +18,34 @@ export default function Dashboard() {
       {/* Estatísticas */}
       <StatisticsCards />
       
-      {/* Mapa e Avaliações Recentes */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4">
-          <AssessmentMap />
-        </div>
-        
-        <div className="col-span-3">
-          <RecentAssessments />
+      {/* Mapa de Avaliações */}
+      <div className="grid gap-4">
+        <div className="">
+          <div className="bg-white p-6 rounded-lg border shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Mapa de Avaliações</h3>
+              <MapPin className="h-5 w-5 text-gray-500" />
+            </div>
+            <p className="text-gray-600 mb-4">
+              Visualize todas as avaliações de desastres em um mapa interativo com informações detalhadas de localização e severidade.
+            </p>
+            <Link href="/mapa">
+              <Button className="w-full">
+                <MapPin className="mr-2 h-4 w-4" />
+                Ver Avaliações no Mapa
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
       
       {/* Gráficos */}
       <AssessmentCharts />
+
+      {/* Avaliações Recentes - linha final */}
+      <div>
+        <RecentAssessments />
+      </div>
     </div>
   )
 }

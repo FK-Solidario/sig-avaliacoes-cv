@@ -1,73 +1,78 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useAssessmentStore } from '@/store/assessments'
 import { MapMarker } from '@/types'
 
-// Dynamically import the map component to avoid SSR issues
+// Dynamically import the map component to avoid SSR issues with Leaflet
 const DynamicMap = dynamic(
   () => import('./map-component'),
   { 
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-lg animate-pulse">
+      <div className="flex items-center justify-center h-full bg-gray-100 rounded-lg animate-pulse">
         <div className="text-gray-500">Carregando mapa...</div>
       </div>
     )
   }
 )
 
-export default function AssessmentMap() {
-  const { assessments, fetchAssessments } = useAssessmentStore()
-  const [markers, setMarkers] = useState<MapMarker[]>([])
-  const [isClient, setIsClient] = useState(false)
+export function AssessmentMap() {
+  // Pegamos a lista de avaliações do store e não um campo inexistente "markers"
+  const assessments = useAssessmentStore((state) => state.assessments)
+  const fetchAssessments = useAssessmentStore((state) => state.fetchAssessments)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setIsClient(true)
-    fetchAssessments()
-  }, [])
-
-  useEffect(() => {
-    if (assessments.length > 0) {
-      const markers: MapMarker[] = assessments
-        .filter(assessment => assessment.location?.latitude && assessment.location?.longitude)
-        .map(assessment => ({
-          id: assessment.id.toString(),
-          position: [assessment.location!.latitude, assessment.location!.longitude] as [number, number],
-          title: assessment.title || `Avaliação - ${assessment.nome_responsavel}`,
-          severity: assessment.nivel_danos === 'total' ? 'high' : assessment.nivel_danos === 'grave' ? 'medium' : 'low',
-          status: assessment.status || 'pending',
-          popup: assessment.description || assessment.endereco_completo || 'Sem descrição'
-        }))
-      
-      setMarkers(markers)
+    let mounted = true
+    const load = async () => {
+      try {
+        await fetchAssessments()
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
     }
+    load()
+    return () => { mounted = false }
+  }, [fetchAssessments])
+
+  // Converte avaliações em marcadores do mapa, filtrando apenas as que têm coordenadas válidas
+  const markers: MapMarker[] = useMemo(() => {
+    const mapSeverity = (nivel?: string): string => {
+      if (!nivel) return 'default'
+      if (nivel === 'total') return 'critical'
+      if (nivel === 'grave') return 'high'
+      if (nivel === 'parcial') return 'medium'
+      return nivel
+    }
+
+    return (assessments || [])
+      .filter((a: any) => typeof a.latitude_gps === 'number' && typeof a.longitude_gps === 'number')
+      .map((a: any) => ({
+        id: String(a.id),
+        position: [a.latitude_gps as number, a.longitude_gps as number],
+        title: a.title || `Avaliação - ${a.nome_responsavel ?? a.id}`,
+        severity: mapSeverity(a.nivel_danos),
+        status: 'completed',
+        popup: a.endereco_completo,
+      }))
   }, [assessments])
 
-  // Don't render anything on server-side
-  if (!isClient) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-lg animate-pulse">
-        <div className="text-gray-500">Carregando mapa...</div>
-      </div>
-    )
-  }
-
-  if (markers.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-        <div className="text-center">
-          <p className="text-gray-500 mb-2">Nenhuma avaliação com localização encontrada</p>
-          <p className="text-sm text-gray-400">As avaliações com coordenadas GPS aparecerão aqui</p>
-        </div>
+      <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg animate-pulse">
+        <div className="text-gray-500">Carregando avaliações...</div>
       </div>
     )
   }
 
   return (
-    <div className="h-[400px] w-full">
+    <div className="h-full w-full">
       <DynamicMap markers={markers} />
     </div>
   )
 }
+
+export default AssessmentMap
