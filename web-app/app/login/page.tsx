@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -23,6 +23,8 @@ type LoginForm = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams?.get('redirect')
   const { login, isLoading, error, isAuthenticated, clearError } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
 
@@ -38,9 +40,13 @@ export default function LoginPage() {
   // Redirecionar se já autenticado baseado no papel
   useEffect(() => {
     if (isAuthenticated) {
-      redirectBasedOnRole()
+      if (redirect) {
+        router.replace(redirect)
+      } else {
+        redirectBasedOnRole()
+      }
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, redirect])
 
   // Limpar erro quando componente monta
   useEffect(() => {
@@ -54,7 +60,7 @@ export default function LoginPage() {
 
     switch (user.role) {
       case 'ADMIN':
-        router.push('/dashboard')
+        router.push('/')
         break
       case 'ANALISTA':
         router.push('/avaliacoes')
@@ -70,7 +76,11 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     try {
       await login(data.email, data.password)
-      redirectBasedOnRole()
+      if (redirect) {
+        router.replace(redirect)
+      } else {
+        redirectBasedOnRole()
+      }
     } catch (error) {
       // Erro já é tratado no store
       console.error('Login failed:', error)

@@ -80,6 +80,9 @@ export const useAuthStore = create<AuthStore>()((  persist(    (set, get) => ({ 
         } catch (error) {
           console.error('Logout failed:', error);
         } finally {
+          // Ensure localStorage and cookies are cleared
+          AuthUtils.removeToken();
+          
           set({ 
             user: null, 
             token: null, 

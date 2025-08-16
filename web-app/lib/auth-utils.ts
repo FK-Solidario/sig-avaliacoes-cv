@@ -42,6 +42,8 @@ export class AuthUtils {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.USER_KEY);
+      // Also clear Zustand persist auth-storage
+      localStorage.removeItem('auth-storage');
       // Remover cookie
       document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
